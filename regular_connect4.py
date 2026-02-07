@@ -105,6 +105,10 @@ class Board:
                             self.hovered_col = top_cell.col
 
             cell.draw()
+
+        for cell in self.cells:
+            self.game.screen.blit(cell.background, cell.rect)
+
         if self.check_win(1):
             self.game.last_winner = "red"
             self.reset()
@@ -121,6 +125,7 @@ class Cell:
         self.row, self.col = cords
         self.x = self.col * self.board.square_size[0]
         self.y = self.row * self.board.square_size[1]
+        self.falling_y = -self.board.square_size[1]
         self.rect = pygame.Rect((self.x, self.y), self.board.square_size)
         self.overlay_on = False
         self.overlay = pygame.Surface(self.board.square_size, pygame.SRCALPHA)
@@ -128,8 +133,11 @@ class Cell:
 
     def draw(self):
         if self.img:
-            self.board.game.screen.blit(self.img, (self.x + 1, self.y))
-        self.board.game.screen.blit(self.background, self.rect)
+            if not self.falling_y <= self.y:
+                self.board.game.screen.blit(self.img, (self.x + 1, self.y))
+            else:
+                self.board.game.screen.blit(self.img, (self.x + 1, self.falling_y))
+                self.falling_y += 11
 
         #---highlight on square you'll move to if you click---
         #if self.board.get_top_empty_row(self.col) == self.row and self.board.hovered_col == self.col:
