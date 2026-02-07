@@ -42,6 +42,12 @@ class Board:
             return top_row
         return None
 
+    def board_full(self):
+        for col in range(self.width):
+            if self.board_state[0][col] == 0:
+                return False
+        return True
+
     def check_win(self, piece):
         # Check horizontal locations for win
         for c in range(self.width - 3):
@@ -66,7 +72,6 @@ class Board:
             for r in range(3, self.height):
                 if self.board_state[r][c] == piece and self.board_state[r - 1][c + 1] == piece and self.board_state[r - 2][c + 2] == piece and self.board_state[r - 3][c + 3] == piece:
                     return True
-        return False
 
     def move(self, cell_clicked):
         top_row = self.drop_piece(cell_clicked.col)
@@ -109,10 +114,13 @@ class Board:
         for cell in self.cells:
             self.game.screen.blit(cell.background, cell.rect)
 
-        if self.check_win(1):
+        if self.board_full():
+            self.game.last_winner = 1
+            self.reset()
+        elif self.check_win(1):
             self.game.last_winner = "red"
             self.reset()
-        if self.check_win(2):
+        elif self.check_win(2):
             self.game.last_winner = "yellow"
             self.reset()
 
@@ -162,9 +170,16 @@ class Tictactoe:
         self.win_text_timer = 0
         self.last_winner = None
 
-    def win_text(self, text):
-        if self.last_winner == "red":color = (255, 0, 0)
-        else: color = (255, 255, 0)
+    def win_text(self):
+        if self.last_winner == "red":
+            color = (255, 0, 0)
+            text = "Red won"
+        elif self.last_winner == "yellow":
+            color = (255, 255, 0)
+            text = "Yellow won"
+        else:
+            color = (0, 0, 255)
+            text = "Draw"
         text_surf = self.font.render(text, True, color)
         text_rect = text_surf.get_rect(center=(self.width // 2, 100))
         text_surf.set_alpha(self.win_text_timer)
@@ -187,8 +202,8 @@ class Tictactoe:
             self.screen.fill(pygame.Color('grey'))
             self.take_input()
             self.board.update()
-            if self.win_text_timer > 0:
-                self.win_text(f"{self.last_winner} won")
+            if self.win_text_timer > 0 and self.last_winner:
+                self.win_text()
 
             pygame.display.flip()
             self.clock.tick(self.frame_rate)
